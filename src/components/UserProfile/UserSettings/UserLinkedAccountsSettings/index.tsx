@@ -206,7 +206,8 @@ const UserLinkedAccountsSettings = () => {
         try {
           await initiateOidcLogin(
             p.slug,
-            new URL(window.location.pathname, window.location.origin).toString()
+            new URL(window.location.pathname, window.location.origin).toString(),
+            '/'
           );
         } catch {
           setError(intl.formatMessage(messages.errorUnknown));

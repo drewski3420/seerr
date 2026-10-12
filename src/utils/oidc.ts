@@ -17,6 +17,7 @@ const messages = defineMessages('utils.oidc', {
 });
 
 const OIDC_PROVIDER_KEY = 'oidc-provider';
+const OIDC_RETURN_URL_KEY = 'oidc-return-url';
 
 export function getOidcErrorMessage(
   errorCode: string | undefined,
@@ -48,11 +49,14 @@ export function getOidcErrorMessage(
  */
 export async function initiateOidcLogin(
   providerSlug: string,
+  callbackUrl: string,
   returnUrl: string
 ): Promise<void> {
+  sessionStorage.setItem(OIDC_RETURN_URL_KEY, returnUrl);
+
   const res = await axios.get<{ redirectUrl: string }>(
     `/api/v1/auth/oidc/login/${encodeURIComponent(providerSlug)}`,
-    { params: { returnUrl } }
+    { params: { returnUrl: callbackUrl } }
   );
   sessionStorage.setItem(OIDC_PROVIDER_KEY, providerSlug);
   window.location.href = res.data.redirectUrl;
@@ -70,6 +74,12 @@ export function getOidcProviderSlug(): string | null {
  */
 export function clearOidcProviderSlug(): void {
   sessionStorage.removeItem(OIDC_PROVIDER_KEY);
+}
+
+export function getOidcReturnUrl(): string {
+  const returnUrl = sessionStorage.getItem(OIDC_RETURN_URL_KEY) || '/';
+  sessionStorage.removeItem(OIDC_RETURN_URL_KEY);
+  return returnUrl;
 }
 
 /**

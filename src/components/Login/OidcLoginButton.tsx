@@ -5,6 +5,7 @@ import {
   getOidcProviderSlug,
   initiateOidcLogin,
   processOidcCallback,
+  getOidcReturnUrl,
 } from '@app/utils/oidc';
 import type { PublicOidcProvider } from '@server/lib/settings';
 import { useRouter } from 'next/router';
@@ -29,9 +30,11 @@ export default function OidcLoginButton({
   const redirectToLogin = useCallback(async () => {
     setLoading(true);
     try {
+      console.log('Login redirect query:', query.redirect);
       await initiateOidcLogin(
         provider.slug,
-        new URL(window.location.pathname, window.location.origin).toString()
+        new URL(window.location.pathname, window.location.origin).toString(),
+        typeof query.redirect === 'string' ? query.redirect : '/'
       );
     } catch (e) {
       setLoading(false);
@@ -39,13 +42,15 @@ export default function OidcLoginButton({
         ?.response?.data?.error;
       onError?.(getOidcErrorMessage(errorCode, provider.name, intl));
     }
-  }, [provider, intl, onError]);
+  }, [provider, intl, onError, query.redirect]);
 
   const handleCallback = useCallback(async () => {
     setLoading(true);
     const result = await processOidcCallback(provider.slug);
     if (result.type === 'success') {
-      router.push('/');
+      const returnUrl = getOidcReturnUrl();
+      console.log('OIDC return URL:', returnUrl);
+      await router.push(returnUrl);
     } else {
       router.replace('/login');
       setLoading(false);

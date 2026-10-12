@@ -12,6 +12,7 @@ import { Permission, useUser } from '@app/hooks/useUser';
 import '@app/styles/globals.css';
 import { polyfillIntl } from '@app/utils/polyfillIntl';
 import { getHostAndPort } from '@app/utils/urlHelper';
+import { getLoginUrl, getSafeRedirect } from '@app/utils/urlValidationHelper';
 import '@fontsource-variable/inter';
 import { MediaServerType } from '@server/constants/server';
 import type { PublicSettingsResponse } from '@server/interfaces/api/settingsInterfaces';
@@ -304,7 +305,7 @@ CoreApp.getInitialProps = async (initialProps) => {
           router.query.code == null
         ) {
           ctx.res.writeHead(307, {
-            Location: '/',
+            Location: getSafeRedirect(ctx.query.redirect),
           });
           ctx.res.end();
         }
@@ -314,7 +315,7 @@ CoreApp.getInitialProps = async (initialProps) => {
         // before anything actually renders
         if (!router.pathname.match(/(login|setup|resetpassword)/)) {
           ctx.res.writeHead(307, {
-            Location: '/login',
+            Location: getLoginUrl(ctx.asPath),
           });
           ctx.res.end();
         }
